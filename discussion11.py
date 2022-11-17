@@ -7,6 +7,7 @@ import os
 # Create Database
 def setUpDatabase(db_name):
     path = os.path.dirname(os.path.abspath(__file__))
+    print(path)
     conn = sqlite3.connect(path+'/'+db_name)
     cur = conn.cursor()
     return cur, conn
@@ -39,12 +40,15 @@ def create_species_table(cur, conn):
 # TASK 1
 # CREATE TABLE FOR PATIENTS IN DATABASE
 def create_patients_table(cur, conn):
-    pass
+    cur.execute('drop table if exists Patients')
+    cur.execute('create table Patients (pet_id INTEGER PRIMARY KEY, name TEXT, species_id INTEGER, age INTEGER, cuteness INTEGER, aggressivity INTEGER)')
+    conn.commit()
 
 
 # ADD FLUFFLE TO THE TABLE
 def add_fluffle(cur, conn):
-    pass
+    cur.execute('insert into Patients(pet_id, name, species_id, age, cuteness, aggressivity) values(?, ?, ?, ?, ?, ?)', (0, "fluffle", 0, 3, 90, 100))
+    conn.commit()
     
 
 # TASK 2
@@ -56,17 +60,29 @@ def add_pets_from_json(filename, cur, conn):
     f = open(filename)
     file_data = f.read()
     f.close()
-    json_data = json.loads(file_data)
+    pets = json.loads(file_data)
 
     # THE REST IS UP TO YOU
-    pass
-
+    for pet in pets:
+        res = cur.execute('SELECT id FROM Species WHERE title = ?', (pet['species'],))
+        id = res.fetchone()[0]
+        cur.execute('INSERT INTO Patients(name, species_id, age, cuteness, aggressivity) VALUES(?, ?, ?, ?, ?)', 
+            (
+            pet['name'], 
+            id, 
+            pet['age'], 
+            pet['cuteness'], 
+            pet['aggressiveness']
+            )
+        )
+        conn.commit()
 
 # TASK 3
 # CODE TO OUTPUT NON-AGGRESSIVE PETS
 def non_aggressive_pets(aggressiveness, cur, conn):
-    pass
-
+    res = cur.execute('SELECT name FROM Patients WHERE aggressivity <= ?', (aggressiveness,))
+    conn.commit()
+    return list(res)
 
 
 def main():
